@@ -1,0 +1,148 @@
+<!-- popup.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🎥 Meet Auto Mute</h1>
+        <p>自动关闭Google Meet摄像头和麦克风</p>
+    </header>
+
+    <main>
+        <div class="setting-item">
+            <label class="switch">
+                <input type="checkbox" id="autoMuteToggle">
+                <span class="slider"></span>
+            </label>
+            <div class="setting-text">
+                <strong>自动静音</strong>
+                <p>进入会议时自动关闭摄像头和麦克风</p>
+            </div>
+        </div>
+
+        <div class="setting-item">
+            <label class="switch">
+                <input type="checkbox" id="notificationToggle">
+                <span class="slider"></span>
+            </label>
+            <div class="setting-text">
+                <strong>通知提醒</strong>
+                <p>成功静音时显示通知</p>
+            </div>
+        </div>
+
+        <div class="statistics">
+            <h3>📊 使用统计</h3>
+            <div class="stat-item">
+                <span>总会议次数:</span>
+                <span id="totalMeetings">0</span>
+            </div>
+            <div class="stat-item">
+                <span>自动静音次数:</span>
+                <span id="totalMutes">0</span>
+            </div>
+            <div class="stat-item">
+                <span>上次使用:</span>
+                <span id="lastUsed">从未</span>
+            </div>
+            <button id="resetStats" class="reset-btn">重置统计</button>
+        </div>
+    </main>
+
+    <footer>
+        <p>Version 1.0.0</p>
+        <a href="#" id="helpLink">使用帮助</a>
+    </footer>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
+
+<!-- popup.js -->
+<script>
+    class PopupManager {
+        constructor() {
+            this.loadSettings();
+            this.loadStatistics();
+            this.setupEventListeners();
+        }
+
+        async loadSettings() {
+            const result = await chrome.storage.sync.get([
+                'autoMuteEnabled',
+                'notificationEnabled'
+            ]);
+
+            document.getElementById('autoMuteToggle').checked =
+                result.autoMuteEnabled !== false;
+            document.getElementById('notificationToggle').checked =
+                result.notificationEnabled !== false;
+        }
+
+        async loadStatistics() {
+            try {
+                const response = await chrome.runtime.sendMessage({
+                    action: 'getStatistics'
+                });
+
+                if (response) {
+                    document.getElementById('totalMeetings').textContent =
+                        response.totalMeetings || 0;
+                    document.getElementById('totalMutes').textContent =
+                        response.totalMutes || 0;
+                    document.getElementById('lastUsed').textContent =
+                        response.lastUsed ?
+                            new Date(response.lastUsed).toLocaleString('zh-CN') :
+                            '从未';
+                }
+            } catch (error) {
+                console.error('加载统计数据失败:', error);
+            }
+        }
+
+        setupEventListeners() {
+            // 自动静音开关
+            document.getElementById('autoMuteToggle').addEventListener('change',
+                async (e) => {
+                    await chrome.storage.sync.set({
+                        autoMuteEnabled: e.target.checked
+                    });
+                });
+
+            // 通知开关
+            document.getElementById('notificationToggle').addEventListener('change',
+                async (e) => {
+                    await chrome.storage.sync.set({
+                        notificationEnabled: e.target.checked
+                    });
+                });
+
+            // 重置统计
+            document.getElementById('resetStats').addEventListener('click',
+                async () => {
+                    if (confirm('确定要重置所有统计数据吗？')) {
+                        await chrome.runtime.sendMessage({ action: 'resetStatistics' });
+                        this.loadStatistics();
+                    }
+                });
+
+            // 帮助链接
+            document.getElementById('helpLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                chrome.tabs.create({
+                    url: 'https://github.com/yourusername/google-meet-auto-mute'
+                });
+            });
+        }
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        new PopupManager();
+    });
+</script>
