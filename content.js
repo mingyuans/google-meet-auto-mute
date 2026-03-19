@@ -93,12 +93,12 @@ class MeetingControlManager {
 
         const selectors = {
             micButton: [
-                'div[role="button"][aria-label*="mic"]',
-                'div[jscontroller][jsaction*="click"]'
+                '[role="button"][aria-label*="mic"]',
+                '[role="button"][aria-label*="麦克风"]',
             ],
             cameraButton: [
-                'div[role="button"][aria-label*="camera"]',
-                'div[jscontroller][jsaction*="click"]'
+                '[role="button"][aria-label*="camera"]',
+                '[role="button"][aria-label*="摄像头"]',
             ]
         };
 
@@ -168,15 +168,15 @@ class MeetingControlManager {
     }
 
     async muteAudioAndVideo() {
-        // Google Meet button selectors
+        // Google Meet button selectors (English + Chinese)
         const selectors = {
             micButton: [
-                'div[role="button"][aria-label*="mic"]',
-                'div[jscontroller][jsaction*="click"]'
+                '[role="button"][aria-label*="mic"]',
+                '[role="button"][aria-label*="麦克风"]',
             ],
             cameraButton: [
-                'div[role="button"][aria-label*="camera"]',
-                'div[jscontroller][jsaction*="click"]'
+                '[role="button"][aria-label*="camera"]',
+                '[role="button"][aria-label*="摄像头"]',
             ]
         };
 
@@ -294,9 +294,12 @@ class MeetingControlManager {
         // - "Turn on camera" = camera is currently off
 
         const isCurrentlyOn = (
+            // English: device is on → label says "turn off / mute / disable"
             ariaLabel.includes('turn off') ||
             ariaLabel.includes('mute microphone') ||
-            ariaLabel.includes('disable camera')
+            ariaLabel.includes('disable camera') ||
+            // Chinese: device is on → label says "关闭"
+            ariaLabel.includes('关闭')
         );
 
         console.log(`Button state check: "${ariaLabel}" -> currently on: ${isCurrentlyOn}`);
