@@ -59,11 +59,6 @@ class BackgroundManager {
 
     onFirstInstall() {
         console.log('🎥 Google Meet Auto Mute Installed!');
-
-        // You can add any first-time setup logic here
-        chrome.tabs.create({
-            url: chrome.runtime.getURL('welcome.html')
-        });
     }
 
     async handleMessage(message, sender, sendResponse) {
